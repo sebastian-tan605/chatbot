@@ -68,39 +68,71 @@ def find_relevant_chunk(question, chunks):
     return best_chunk
 
 # ========== LLM Logic ==========
-def ask_llm_with_history(question, context, history, openrouter_api_key):
-    url = "https://openrouter.ai/api/v1/chat/completions"
+# def ask_llm_with_history(question, context, history, openrouter_api_key):
+#     url = "https://openrouter.ai/api/v1/chat/completions"
+#     headers = {
+#         "Authorization": f"Bearer {openrouter_api_key}",
+#         "Content-Type": "application/json"
+#     }
+
+#     messages = [{"role": "system", "content": 
+#         "You are a friendly AI assistant who gives casual and helpful laptop advice. "
+#         "ONLY use the internal knowledge you gain from the info below — but NEVER mention, refer to, or hint at it in your answers. "
+#         "Avoid formal tones or sign-offs. Be friendly, clear, and conversational.\n\n"
+#         f"[INFO SOURCE]\n{context}"}]
+
+#     for entry in history:
+#         messages.append({"role": "user", "content": entry["user"]})
+#         messages.append({"role": "assistant", "content": entry["assistant"]})
+
+#     messages.append({"role": "user", "content": question})
+
+#     payload = {
+#         "model": "mistralai/mistral-7b-instruct",
+#         "messages": messages,
+#         "temperature": 0.3,
+#         "top_p": 0.9
+#     }
+
+#     response = requests.post(url, headers=headers, json=payload)
+#     if response.status_code == 200:
+#         return format_response(response.json()["choices"][0]["message"]["content"])
+#     else:
+#         return f"❌ Error {response.status_code}: {response.text}"
+
+#     response = requests.post(url, headers=headers, json=payload)
+
+
+def ask_llm_with_history(question, context, history, hf_token):
+    url = "https://api.your-llm-provider.com/endpoint"  # your actual endpoint
     headers = {
-        "Authorization": f"Bearer {openrouter_api_key}",
+        "Authorization": f"Bearer {hf_token}",
         "Content-Type": "application/json"
     }
 
-    messages = [{"role": "system", "content": 
-        "You are a friendly AI assistant who gives casual and helpful laptop advice. "
-        "ONLY use the internal knowledge you gain from the info below — but NEVER mention, refer to, or hint at it in your answers. "
-        "Avoid formal tones or sign-offs. Be friendly, clear, and conversational.\n\n"
-        f"[INFO SOURCE]\n{context}"}]
-
-    for entry in history:
-        messages.append({"role": "user", "content": entry["user"]})
-        messages.append({"role": "assistant", "content": entry["assistant"]})
-
-    messages.append({"role": "user", "content": question})
-
     payload = {
-        "model": "mistralai/mistral-7b-instruct",
-        "messages": messages,
-        "temperature": 0.3,
-        "top_p": 0.9
+        "messages": history + [{"role": "user", "content": question}],
+        "context": context,
+        "max_tokens": 500,
+        # Add model name or other config if needed
     }
 
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        return format_response(response.json()["choices"][0]["message"]["content"])
-    else:
-        return f"❌ Error {response.status_code}: {response.text}"
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
 
-    response = requests.post(url, headers=headers, json=payload)
+        try:
+            data = response.json()
+        except JSONDecodeError:
+            return f"❌ Failed to decode response. Raw response: {response.text}"
+
+        if "choices" in data and data["choices"]:
+            return format_response(data["choices"][0]["message"]["content"])
+        else:
+            return f"❌ Unexpected response format: {data}"
+
+    except requests.exceptions.RequestException as e:
+        return f"❌ Request error: {e}"
 
 # ========== Emoji Formatting ==========
 def format_response(text):
