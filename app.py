@@ -94,11 +94,28 @@ def ask_llm_with_history(question, context, history, openrouter_api_key):
         "top_p": 0.9
     }
 
-    response = requests.post(url, headers=headers, json=payload)
-    if response.status_code == 200:
-        return format_response(response.json()["choices"][0]["message"]["content"])
-    else:
-        return f"❌ Error {response.status_code}: {response.text}"
+    # response = requests.post(url, headers=headers, json=payload)
+    # if response.status_code == 200:
+    #     return format_response(response.json()["choices"][0]["message"]["content"])
+    # else:
+    #     return f"❌ Error {response.status_code}: {response.text}"
+
+    # response = requests.post(url, headers=headers, json=payload)
+    
+    try:
+        response.raise_for_status()  # Raises an HTTPError for bad status
+        data = response.json()
+    
+        if "choices" in data and data["choices"]:
+            return format_response(data["choices"][0]["message"])
+        else:
+            return f"❌ Unexpected response format: {data}"
+    
+    except requests.exceptions.HTTPError as e:
+        return f"❌ HTTP Error: {e} - {response.text}"
+    except Exception as e:
+        return f"❌ Unexpected error: {e}"
+
 
 # ========== Emoji Formatting ==========
 def format_response(text):
