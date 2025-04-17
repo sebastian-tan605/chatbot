@@ -68,10 +68,18 @@ def find_relevant_chunk(question, chunks):
     return best_chunk
 
 # ========== LLM Logic ==========
-def is_question_relevant(question, chunks, threshold=2):
-    keywords = question.lower().split()
-    score = max(sum(1 for word in keywords if word in chunk.lower()) for chunk in chunks)
-    return score >= threshold
+def is_question_relevant_tfidf(question, chunks, threshold=0.2):
+    vectorizer = TfidfVectorizer()
+    all_texts = chunks + [question]  # Combine PDF chunks + user question
+    tfidf_matrix = vectorizer.fit_transform(all_texts)
+
+    question_vec = tfidf_matrix[-1]  # Last one is the question
+    chunk_vecs = tfidf_matrix[:-1]   # All before are the chunks
+
+    similarities = cosine_similarity(question_vec, chunk_vecs)
+    max_score = similarities.max()
+
+    return max_score >= threshold
 
 def ask_llm_with_history(question, context, history, openrouter_api_key):
     url = "https://openrouter.ai/api/v1/chat/completions"
