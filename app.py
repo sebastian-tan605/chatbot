@@ -11,6 +11,8 @@ import requests
 import random
 from nltk.stem import WordNetLemmatizer
 from difflib import get_close_matches
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 # ========== Greeting Logic ==========
 lemmatizer = WordNetLemmatizer()
