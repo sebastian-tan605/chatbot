@@ -68,7 +68,7 @@ def find_relevant_chunk(question, chunks):
     return best_chunk
 
 # ========== LLM Logic ==========
-def is_question_relevant_tfidf(question, chunks, threshold=0.2):
+def is_question_relevant(question, chunks, threshold=0.2):
     vectorizer = TfidfVectorizer()
     all_texts = chunks + [question]  # Combine PDF chunks + user question
     tfidf_matrix = vectorizer.fit_transform(all_texts)
