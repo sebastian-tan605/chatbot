@@ -177,11 +177,11 @@ if hf_token and uploaded_file:
                 ai_reply = f"{get_random_greeting()}\n\n{category_suggestion}"
             else:
                 with st.spinner("🤔 Thinking..."):
-                    if not is_question_relevant(question, pdf_chunks):
-                        ai_reply = "❌ That question doesn't seem related to the uploaded laptop document. Please ask something about laptops or the PDF content."
-                    else:
-                        context = find_relevant_chunk(question, pdf_chunks)
-                        ai_reply = ask_llm_with_history(question, context, st.session_state.history, hf_token)
+                    # if not is_question_relevant(question, pdf_chunks):
+                    #     ai_reply = "❌ That question doesn't seem related to the uploaded laptop document. Please ask something about laptops or the PDF content."
+                    # else:
+                    context = find_relevant_chunk(question, pdf_chunks)
+                    ai_reply = ask_llm_with_history(question, context, st.session_state.history, hf_token)
 
             st.session_state.history.append({"user": question, "assistant": ai_reply})
             st.rerun()
